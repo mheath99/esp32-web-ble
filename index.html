@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>TrapGuard</title>
+
+<style>
+  /* ── Design tokens ──────────────────────────────────────────────────────── */
+  :root {
+    --bg:          #0f1117;
+    --surface:     #1a1d27;
+    --surface2:    #22263a;
+    --border:      #2e3347;
+    --accent:      #e85d2f;       /* burnt orange – industrial heat */
+    --accent-dim:  #7a2e14;
+    --green:       #2dd9a0;
+    --yellow:      #f0c040;
+    --red:         #e8433a;
+    --text:        #e8e9ef;
+    --muted:       #7a7e94;
+    --font-mono:   'JetBrains Mono', 'Fira Mono', monospace;
+    --font-sans:   -apple-system, 'SF Pro Display', system-ui, sans-serif;
+    --radius:      14px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    padding: 0 0 calc(20px + var(--safe-bottom)) 0;
+  }
+
+  /* ── Header ─────────────────────────────────────────────────────────────── */
+  header {
+    padding: 52px 24px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 38px; height: 38px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 20px;
+  }
+
+  .logo-text {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text span { color: var(--accent); }
+
+  /* ── BLE status pill ────────────────────────────────────────────────────── */
+  #ble-status {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+
+  #ble-status:active { opacity: .7; }
+
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: background .3s;
+  }
+
+  .dot.connected   { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .dot.connecting  { background: var(--yellow); animation: pulse 1s infinite; }
+  .dot.error       { background: var(--red); }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: .3; }
+  }
+
+  /* ── Main content ───────────────────────────────────────────────────────── */
+  main {
+    flex: 1;
+    padding: 28px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 480px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  /* ── Trap state display ─────────────────────────────────────────────────── */
+  .state-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .state-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .4s ease;
+  }
+
+  .state-card.active::before { transform: scaleX(1); }
+
+  .state-label {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .state-value {
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: -1.5px;
+    color: var(--text);
+    transition: color .3s;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .state-value.opening  { color: var(--yellow); }
+  .state-value.open     { color: var(--green); }
+  .state-value.closing  { color: var(--yellow); }
+  .state-value.closed   { color: var(--red); }
+  .state-value.timeout  { color: var(--red); }
+
+  .state-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+    display: block;
+    transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+  }
+
+  .state-icon.spinning { animation: spin 1s linear infinite; }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* ── Control buttons ────────────────────────────────────────────────────── */
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .btn {
+    border: none;
+    border-radius: var(--radius);
+    padding: 20px 16px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: all .15s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .btn:active { transform: scale(.95); }
+  .btn:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+
+  .btn-icon { font-size: 26px; }
+  .btn-label { font-size: 13px; letter-spacing: .03em; }
+
+  .btn-open {
+    background: #1a2e22;
+    border: 1.5px solid #2d5c3a;
+    color: var(--green);
+  }
+  .btn-open:not(:disabled):active { background: #223829; }
+
+  .btn-close {
+    background: #2e1a1a;
+    border: 1.5px solid #5c2d2d;
+    color: var(--red);
+  }
+  .btn-close:not(:disabled):active { background: #3a2222; }
+
+  .btn-stop {
+    grid-column: span 2;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    flex-direction: row;
+    padding: 14px 20px;
+    justify-content: center;
+  }
+  .btn-stop:not(:disabled) { color: var(--text); }
+
+  /* ── Auto section ───────────────────────────────────────────────────────── */
+  .section-title {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .auto-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+
+  .delay-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .delay-row label {
+    font-size: 14px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .delay-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 600;
+    padding: 10px 14px;
+    text-align: right;
+    -webkit-appearance: none;
+    outline: none;
+    transition: border-color .2s;
+    width: 90px;
+  }
+
+  .delay-input:focus { border-color: var(--accent); }
+
+  .delay-unit {
+    font-size: 14px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+
+  .delay-slider {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--surface2);
+    outline: none;
+    margin-bottom: 18px;
+  }
+
+  .delay-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--accent-dim);
+  }
+
+  .btn-auto {
+    width: 100%;
+    background: linear-gradient(135deg, var(--accent-dim), var(--accent));
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all .15s;
+    -webkit-tap-highlight-color: transparent;
+    letter-spacing: .02em;
+  }
+
+  .btn-auto:active { transform: scale(.97); filter: brightness(.9); }
+  .btn-auto:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+
+  /* Auto countdown bar */
+  .auto-progress {
+    display: none;
+    margin-top: 14px;
+  }
+
+  .auto-progress.visible { display: block; }
+
+  .auto-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .auto-progress-bar-bg {
+    height: 6px;
+    background: var(--bg);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .auto-progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    width: 100%;
+    transition: width .5s linear;
+  }
+
+  /* ── Log ────────────────────────────────────────────────────────────────── */
+  .log-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .log-header {
+    padding: 12px 16px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .log-clear {
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: none;
+    border: 1px solid var(--border);
+    font-family: var(--font-mono);
+    transition: .15s;
+    letter-spacing: .05em;
+  }
+
+  .log-clear:active { background: var(--surface2); }
+
+  #log {
+    padding: 12px 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.7;
+    max-height: 140px;
+    overflow-y: auto;
+    color: var(--muted);
+  }
+
+  .log-entry { display: flex; gap: 10px; }
+  .log-time  { color: var(--accent-dim); flex-shrink: 0; }
+  .log-msg.sent { color: #6fa8dc; }
+  .log-msg.recv { color: var(--green); }
+  .log-msg.info { color: var(--muted); }
+  .log-msg.err  { color: var(--red); }
+
+  /* ── iPhone browser note ────────────────────────────────────────────────── */
+  .note-bar {
+    background: #1a1d27;
+    border: 1px solid #2e3347;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  .note-bar a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .note-bar strong { color: var(--text); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🪤</div>
+    <div class="logo-text">Trap<span>Guard</span></div>
+  </div>
+  <div id="ble-status" onclick="toggleBLE()">
+    <div class="dot" id="dot"></div>
+    <span id="ble-label">Disconnected</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- State display -->
+  <div class="state-card" id="state-card">
+    <div class="state-label">Trap Status</div>
+    <span class="state-icon" id="state-icon">🔒</span>
+    <div class="state-value" id="state-value">UNKNOWN</div>
+  </div>
+
+  <!-- Manual controls -->
+  <div>
+    <div class="section-title">Manual Control</div>
+    <div class="controls">
+      <button class="btn btn-open" id="btn-open" onclick="sendCommand('OPEN')" disabled>
+        <span class="btn-icon">🔓</span>
+        <span class="btn-label">OPEN</span>
+      </button>
+      <button class="btn btn-close" id="btn-close" onclick="sendCommand('CLOSE')" disabled>
+        <span class="btn-icon">🔒</span>
+        <span class="btn-label">CLOSE</span>
+      </button>
+      <button class="btn btn-stop" id="btn-stop" onclick="sendCommand('STOP')" disabled>
+        <span class="btn-icon" style="font-size:16px">⏹</span>
+        <span>STOP</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Auto mode -->
+  <div>
+    <div class="section-title">Auto Mode — Open then Close</div>
+    <div class="auto-card">
+      <div class="delay-row">
+        <label>Hold open for</label>
+        <input class="delay-input" type="number" id="delay-input"
+               value="5" min="1" max="60" step="1"
+               oninput="syncSlider(this.value)">
+        <span class="delay-unit">sec</span>
+      </div>
+      <input class="delay-slider" type="range" id="delay-slider"
+             min="1" max="60" value="5"
+             oninput="syncInput(this.value)">
+      <button class="btn-auto" id="btn-auto" onclick="runAuto()" disabled>
+        ⚡ Run Auto Sequence
+      </button>
+      <div class="auto-progress" id="auto-progress">
+        <div class="auto-progress-label">
+          <span>Auto-closing in…</span>
+          <span id="auto-countdown">5s</span>
+        </div>
+        <div class="auto-progress-bar-bg">
+          <div class="auto-progress-bar-fill" id="auto-bar"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Event log -->
+  <div class="log-card">
+    <div class="log-header">
+      <span>Event Log</span>
+      <button class="log-clear" onclick="clearLog()">CLEAR</button>
+    </div>
+    <div id="log"></div>
+  </div>
+
+  <!-- Browser note -->
+  <div class="note-bar">
+    <strong>iPhone users:</strong> Web Bluetooth requires
+    <a href="https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055" target="_blank">Bluefy</a>
+    browser — Safari does not support Web Bluetooth.
+    Open this page in Bluefy to connect.
+  </div>
+
+</main>
+
+<script>
+// ── BLE constants ─────────────────────────────────────────────────────────────
+const SERVICE_UUID        = '12345678-1234-1234-1234-123456789012';
+const CHARACTERISTIC_UUID = '12345678-1234-1234-1234-123456789013';
+
+let bleDevice         = null;
+let bleServer         = null;
+let bleCharacteristic = null;
+let autoCountdownTimer = null;
+let autoCountdownStart = 0;
+let autoDelayLocal     = 5000;
+
+// ── BLE connect / disconnect ──────────────────────────────────────────────────
+async function toggleBLE() {
+  if (bleDevice && bleDevice.gatt.connected) {
+    await disconnectBLE();
+  } else {
+    await connectBLE();
+  }
+}
+
+async function connectBLE() {
+  if (!navigator.bluetooth) {
+    log('Web Bluetooth not supported. Use Bluefy on iPhone.', 'err');
+    return;
+  }
+  try {
+    setDot('connecting', 'Scanning…');
+    log('Scanning for TrapGuard…', 'info');
+
+    bleDevice = await navigator.bluetooth.requestDevice({
+      filters: [{ name: 'TrapGuard' }],
+      optionalServices: [SERVICE_UUID]
+    });
+
+    bleDevice.addEventListener('gattserverdisconnected', onDisconnected);
+
+    bleServer = await bleDevice.gatt.connect();
+    const service = await bleServer.getPrimaryService(SERVICE_UUID);
+    bleCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+
+    await bleCharacteristic.startNotifications();
+    bleCharacteristic.addEventListener('characteristicvaluechanged', onNotify);
+
+    setDot('connected', bleDevice.name || 'Connected');
+    enableButtons(true);
+    log('Connected to ' + (bleDevice.name || 'device'), 'recv');
+
+    // Request current status
+    await sendCommand('STATUS');
+
+  } catch (err) {
+    setDot('error', 'Error');
+    log('Connect failed: ' + err.message, 'err');
+    bleDevice = null;
+    setTimeout(() => setDot('', 'Disconnected'), 2000);
+  }
+}
+
+async function disconnectBLE() {
+  if (bleDevice && bleDevice.gatt.connected) {
+    await bleDevice.gatt.disconnect();
+  }
+}
+
+function onDisconnected() {
+  setDot('', 'Disconnected');
+  enableButtons(false);
+  bleDevice = null;
+  bleCharacteristic = null;
+  log('Disconnected', 'info');
+}
+
+// ── Send command ──────────────────────────────────────────────────────────────
+async function sendCommand(cmd) {
+  if (!bleCharacteristic) {
+    log('Not connected', 'err');
+    return;
+  }
+  try {
+    const encoder = new TextEncoder();
+    await bleCharacteristic.writeValue(encoder.encode(cmd));
+    log(cmd, 'sent');
+  } catch (err) {
+    log('Send error: ' + err.message, 'err');
+  }
+}
+
+// ── Auto sequence ─────────────────────────────────────────────────────────────
+async function runAuto() {
+  const secs = parseInt(document.getElementById('delay-input').value, 10) || 5;
+  autoDelayLocal = secs * 1000;
+  await sendCommand('AUTO:' + autoDelayLocal);
+  startCountdownUI(secs);
+}
+
+function startCountdownUI(secs) {
+  clearInterval(autoCountdownTimer);
+  const bar = document.getElementById('auto-bar');
+  const countdown = document.getElementById('auto-countdown');
+  const progress = document.getElementById('auto-progress');
+
+  progress.classList.add('visible');
+  autoCountdownStart = Date.now();
+  const totalMs = secs * 1000;
+
+  function tick() {
+    const elapsed = Date.now() - autoCountdownStart;
+    const remaining = Math.max(0, totalMs - elapsed);
+    const pct = (remaining / totalMs) * 100;
+    bar.style.width = pct + '%';
+    countdown.textContent = (remaining / 1000).toFixed(1) + 's';
+    if (remaining <= 0) {
+      clearInterval(autoCountdownTimer);
+      progress.classList.remove('visible');
+    }
+  }
+
+  autoCountdownTimer = setInterval(tick, 100);
+  tick();
+}
+
+// ── Notifications from ESP32 ──────────────────────────────────────────────────
+function onNotify(event) {
+  const decoder = new TextDecoder();
+  const msg = decoder.decode(event.target.value);
+  log(msg, 'recv');
+  updateState(msg);
+}
+
+const stateMap = {
+  'IDLE':       { label: 'IDLE',     icon: '💤', cls: '' },
+  'OPENING':    { label: 'OPENING',  icon: '🔓', cls: 'opening' },
+  'OPEN':       { label: 'OPEN',     icon: '✅', cls: 'open' },
+  'CLOSING':    { label: 'CLOSING',  icon: '🔒', cls: 'closing' },
+  'CLOSED':     { label: 'CLOSED',   icon: '🔒', cls: 'closed' },
+  'AUTO_OPEN':  { label: 'OPEN',     icon: '⏳', cls: 'open' },
+  'AUTO_WAIT':  { label: 'WAITING',  icon: '⏳', cls: 'open' },
+  'STOPPED':    { label: 'STOPPED',  icon: '⏹', cls: '' },
+  'TIMEOUT':    { label: 'TIMEOUT',  icon: '⚠️', cls: 'timeout' },
+  'UNKNOWN':    { label: 'UNKNOWN',  icon: '❓', cls: '' },
+};
+
+function updateState(msg) {
+  const s = stateMap[msg] || stateMap['UNKNOWN'];
+  document.getElementById('state-value').textContent = s.label;
+  document.getElementById('state-value').className = 'state-value ' + s.cls;
+  document.getElementById('state-icon').textContent = s.icon;
+  document.getElementById('state-card').classList.toggle('active',
+    msg === 'OPENING' || msg === 'CLOSING' || msg === 'AUTO_WAIT');
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────────
+function setDot(state, label) {
+  const dot = document.getElementById('dot');
+  dot.className = 'dot ' + state;
+  document.getElementById('ble-label').textContent = label;
+}
+
+function enableButtons(on) {
+  ['btn-open','btn-close','btn-stop','btn-auto'].forEach(id => {
+    document.getElementById(id).disabled = !on;
+  });
+}
+
+function syncSlider(v) {
+  document.getElementById('delay-slider').value = v;
+}
+
+function syncInput(v) {
+  document.getElementById('delay-input').value = v;
+}
+
+// ── Log ───────────────────────────────────────────────────────────────────────
+function log(msg, type = 'info') {
+  const el = document.getElementById('log');
+  const now = new Date();
+  const ts = now.getHours().toString().padStart(2,'0') + ':' +
+             now.getMinutes().toString().padStart(2,'0') + ':' +
+             now.getSeconds().toString().padStart(2,'0');
+  const arrow = type === 'sent' ? '→' : type === 'recv' ? '←' : '·';
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="log-time">${ts}</span><span class="log-msg ${type}">${arrow} ${msg}</span>`;
+  el.prepend(entry);
+
+  // Keep last 40 entries
+  while (el.children.length > 40) el.removeChild(el.lastChild);
+}
+
+function clearLog() {
+  document.getElementById('log').innerHTML = '';
+}
+
+// Initial state
+log('TrapGuard ready – tap Connect to pair', 'info');
+</script>
+
+</body>
+</html>
