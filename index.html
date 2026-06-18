@@ -8,13 +8,12 @@
 <title>TrapGuard</title>
 
 <style>
-  /* ── Design tokens ──────────────────────────────────────────────────────── */
   :root {
     --bg:          #0f1117;
     --surface:     #1a1d27;
     --surface2:    #22263a;
     --border:      #2e3347;
-    --accent:      #e85d2f;       /* burnt orange – industrial heat */
+    --accent:      #e85d2f;
     --accent-dim:  #7a2e14;
     --green:       #2dd9a0;
     --yellow:      #f0c040;
@@ -45,7 +44,6 @@
     padding: 0 0 calc(20px + var(--safe-bottom)) 0;
   }
 
-  /* ── Header ─────────────────────────────────────────────────────────────── */
   header {
     padding: 52px 24px 20px;
     display: flex;
@@ -54,11 +52,7 @@
     border-bottom: 1px solid var(--border);
   }
 
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+  .logo { display: flex; align-items: center; gap: 10px; }
 
   .logo-icon {
     width: 38px; height: 38px;
@@ -68,15 +62,9 @@
     font-size: 20px;
   }
 
-  .logo-text {
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-  }
-
+  .logo-text { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
   .logo-text span { color: var(--accent); }
 
-  /* ── BLE status pill ────────────────────────────────────────────────────── */
   #ble-status {
     display: flex;
     align-items: center;
@@ -105,12 +93,8 @@
   .dot.connecting  { background: var(--yellow); animation: pulse 1s infinite; }
   .dot.error       { background: var(--red); }
 
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: .3; }
-  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
 
-  /* ── Main content ───────────────────────────────────────────────────────── */
   main {
     flex: 1;
     padding: 28px 20px;
@@ -122,12 +106,12 @@
     margin: 0 auto;
   }
 
-  /* ── Trap state display ─────────────────────────────────────────────────── */
+  /* ── State display ──────────────────────────────────────────────────────── */
   .state-card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 28px 24px;
+    padding: 26px 24px;
     text-align: center;
     position: relative;
     overflow: hidden;
@@ -156,7 +140,7 @@
   }
 
   .state-value {
-    font-size: 42px;
+    font-size: 38px;
     font-weight: 700;
     letter-spacing: -1.5px;
     color: var(--text);
@@ -165,82 +149,28 @@
     margin-bottom: 6px;
   }
 
-  .state-value.opening  { color: var(--yellow); }
-  .state-value.open     { color: var(--green); }
-  .state-value.closing  { color: var(--yellow); }
-  .state-value.closed   { color: var(--red); }
-  .state-value.timeout  { color: var(--red); }
+  .state-value.waiting    { color: var(--yellow); }
+  .state-value.opening    { color: var(--yellow); }
+  .state-value.openhold   { color: var(--green); }
+  .state-value.closing    { color: var(--yellow); }
+  .state-value.closehold  { color: var(--red); }
+  .state-value.stopped    { color: var(--red); }
+  .state-value.timeout    { color: var(--red); }
 
   .state-icon {
-    font-size: 48px;
-    margin-bottom: 10px;
+    font-size: 44px;
+    margin-bottom: 8px;
     display: block;
-    transition: transform .4s cubic-bezier(.34,1.56,.64,1);
   }
 
-  .state-icon.spinning { animation: spin 1s linear infinite; }
-
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-  }
-
-  /* ── Control buttons ────────────────────────────────────────────────────── */
-  .controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
-  .btn {
-    border: none;
-    border-radius: var(--radius);
-    padding: 20px 16px;
-    font-size: 16px;
-    font-weight: 600;
-    font-family: var(--font-sans);
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    transition: all .15s;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-  }
-
-  .btn:active { transform: scale(.95); }
-  .btn:disabled { opacity: .35; cursor: not-allowed; transform: none; }
-
-  .btn-icon { font-size: 26px; }
-  .btn-label { font-size: 13px; letter-spacing: .03em; }
-
-  .btn-open {
-    background: #1a2e22;
-    border: 1.5px solid #2d5c3a;
-    color: var(--green);
-  }
-  .btn-open:not(:disabled):active { background: #223829; }
-
-  .btn-close {
-    background: #2e1a1a;
-    border: 1.5px solid #5c2d2d;
-    color: var(--red);
-  }
-  .btn-close:not(:disabled):active { background: #3a2222; }
-
-  .btn-stop {
-    grid-column: span 2;
-    background: var(--surface2);
-    border: 1.5px solid var(--border);
+  .phase-timer {
+    font-family: var(--font-mono);
+    font-size: 13px;
     color: var(--muted);
-    flex-direction: row;
-    padding: 14px 20px;
-    justify-content: center;
+    margin-top: 4px;
   }
-  .btn-stop:not(:disabled) { color: var(--text); }
 
-  /* ── Auto section ───────────────────────────────────────────────────────── */
+  /* ── Settings ────────────────────────────────────────────────────────────── */
   .section-title {
     font-size: 11px;
     font-family: var(--font-mono);
@@ -250,79 +180,73 @@
     margin-bottom: 12px;
   }
 
-  .auto-card {
+  .settings-card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 20px;
+    padding: 18px 20px;
   }
 
-  .delay-row {
+  .setting-row {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
   }
 
-  .delay-row label {
-    font-size: 14px;
-    color: var(--muted);
-    white-space: nowrap;
+  .setting-row:last-child { border-bottom: none; }
+
+  .setting-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
 
-  .delay-input {
-    flex: 1;
+  .setting-label .name { font-size: 14px; color: var(--text); }
+  .setting-label .hint { font-size: 11px; color: var(--muted); }
+
+  .setting-input {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .num-input {
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 8px;
     color: var(--text);
     font-family: var(--font-mono);
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
-    padding: 10px 14px;
+    padding: 8px 10px;
     text-align: right;
     -webkit-appearance: none;
     outline: none;
     transition: border-color .2s;
-    width: 90px;
+    width: 64px;
   }
 
-  .delay-input:focus { border-color: var(--accent); }
+  .num-input:focus { border-color: var(--accent); }
 
-  .delay-unit {
-    font-size: 14px;
-    color: var(--muted);
-    font-family: var(--font-mono);
+  .unit { font-size: 13px; color: var(--muted); font-family: var(--font-mono); }
+
+  /* ── Controls ────────────────────────────────────────────────────────────── */
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
-  .delay-slider {
-    width: 100%;
-    -webkit-appearance: none;
-    height: 4px;
-    border-radius: 2px;
-    background: var(--surface2);
-    outline: none;
-    margin-bottom: 18px;
-  }
-
-  .delay-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    background: var(--accent);
-    cursor: pointer;
-    box-shadow: 0 0 8px var(--accent-dim);
-  }
-
-  .btn-auto {
-    width: 100%;
-    background: linear-gradient(135deg, var(--accent-dim), var(--accent));
+  .btn {
     border: none;
-    border-radius: 10px;
-    color: #fff;
-    font-size: 15px;
+    border-radius: var(--radius);
+    padding: 18px 16px;
+    font-size: 16px;
     font-weight: 700;
-    padding: 16px;
+    font-family: var(--font-sans);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -330,42 +254,62 @@
     gap: 10px;
     transition: all .15s;
     -webkit-tap-highlight-color: transparent;
+    user-select: none;
     letter-spacing: .02em;
   }
 
-  .btn-auto:active { transform: scale(.97); filter: brightness(.9); }
-  .btn-auto:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+  .btn:active { transform: scale(.97); }
+  .btn:disabled { opacity: .35; cursor: not-allowed; transform: none; }
 
-  /* Auto countdown bar */
-  .auto-progress {
+  .btn-icon { font-size: 20px; }
+
+  .btn-run {
+    background: #1a2e22;
+    border: 1.5px solid #2d5c3a;
+    color: var(--green);
+  }
+  .btn-run:not(:disabled):active { background: #223829; }
+
+  .btn-auto-action {
+    background: linear-gradient(135deg, var(--accent-dim), var(--accent));
+    color: #fff;
+  }
+  .btn-auto-action:not(:disabled):active { filter: brightness(.9); }
+
+  .btn-stop {
+    background: #2e1a1a;
+    border: 1.5px solid #5c2d2d;
+    color: var(--red);
+  }
+  .btn-stop:not(:disabled):active { background: #3a2222; }
+
+  .btn-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* ── Loop badge ─────────────────────────────────────────────────────────── */
+  .loop-badge {
     display: none;
-    margin-top: 14px;
-  }
-
-  .auto-progress.visible { display: block; }
-
-  .auto-progress-label {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--accent-dim);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--accent);
     font-family: var(--font-mono);
-    color: var(--muted);
-    margin-bottom: 6px;
   }
 
-  .auto-progress-bar-bg {
-    height: 6px;
-    background: var(--bg);
-    border-radius: 3px;
-    overflow: hidden;
-  }
+  .loop-badge.visible { display: flex; }
 
-  .auto-progress-bar-fill {
-    height: 100%;
+  .loop-badge .pulse-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
     background: var(--accent);
-    border-radius: 3px;
-    width: 100%;
-    transition: width .5s linear;
+    animation: pulse 1.2s infinite;
   }
 
   /* ── Log ────────────────────────────────────────────────────────────────── */
@@ -421,7 +365,6 @@
   .log-msg.info { color: var(--muted); }
   .log-msg.err  { color: var(--red); }
 
-  /* ── iPhone browser note ────────────────────────────────────────────────── */
   .note-bar {
     background: #1a1d27;
     border: 1px solid #2e3347;
@@ -433,11 +376,7 @@
     text-align: center;
   }
 
-  .note-bar a {
-    color: var(--accent);
-    text-decoration: none;
-  }
-
+  .note-bar a { color: var(--accent); text-decoration: none; }
   .note-bar strong { color: var(--text); }
 </style>
 </head>
@@ -459,54 +398,80 @@
   <!-- State display -->
   <div class="state-card" id="state-card">
     <div class="state-label">Trap Status</div>
-    <span class="state-icon" id="state-icon">🔒</span>
-    <div class="state-value" id="state-value">UNKNOWN</div>
+    <span class="state-icon" id="state-icon">💤</span>
+    <div class="state-value" id="state-value">IDLE</div>
+    <div class="phase-timer" id="phase-timer"></div>
   </div>
 
-  <!-- Manual controls -->
+  <div class="loop-badge" id="loop-badge">
+    <span class="pulse-dot"></span>
+    <span>Auto sequence looping — tap Stop to end</span>
+  </div>
+
+  <!-- Timing settings -->
   <div>
-    <div class="section-title">Manual Control</div>
-    <div class="controls">
-      <button class="btn btn-open" id="btn-open" onclick="sendCommand('OPEN')" disabled>
-        <span class="btn-icon">🔓</span>
-        <span class="btn-label">OPEN</span>
-      </button>
-      <button class="btn btn-close" id="btn-close" onclick="sendCommand('CLOSE')" disabled>
-        <span class="btn-icon">🔒</span>
-        <span class="btn-label">CLOSE</span>
-      </button>
-      <button class="btn btn-stop" id="btn-stop" onclick="sendCommand('STOP')" disabled>
-        <span class="btn-icon" style="font-size:16px">⏹</span>
-        <span>STOP</span>
-      </button>
+    <div class="section-title">Sequence Timing</div>
+    <div class="settings-card">
+      <div class="setting-row">
+        <div class="setting-label">
+          <span class="name">Wait before opening</span>
+          <span class="hint">Delay before each cycle starts</span>
+        </div>
+        <div class="setting-input">
+          <input class="num-input" type="number" id="cfg-initial" value="5" min="0" max="120" step="1">
+          <span class="unit">sec</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">
+          <span class="name">Hold open</span>
+          <span class="hint">How long the trap stays open</span>
+        </div>
+        <div class="setting-input">
+          <input class="num-input" type="number" id="cfg-open" value="3" min="1" max="60" step="1">
+          <span class="unit">sec</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">
+          <span class="name">Hold closed</span>
+          <span class="hint">Pause after closing</span>
+        </div>
+        <div class="setting-input">
+          <input class="num-input" type="number" id="cfg-close" value="3" min="1" max="60" step="1">
+          <span class="unit">sec</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">
+          <span class="name">Time between cycles</span>
+          <span class="hint">Used only in Auto Sequence</span>
+        </div>
+        <div class="setting-input">
+          <input class="num-input" type="number" id="cfg-repeat" value="5" min="0" max="600" step="1">
+          <span class="unit">sec</span>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Auto mode -->
+  <!-- Controls -->
   <div>
-    <div class="section-title">Auto Mode — Open then Close</div>
-    <div class="auto-card">
-      <div class="delay-row">
-        <label>Hold open for</label>
-        <input class="delay-input" type="number" id="delay-input"
-               value="5" min="1" max="60" step="1"
-               oninput="syncSlider(this.value)">
-        <span class="delay-unit">sec</span>
-      </div>
-      <input class="delay-slider" type="range" id="delay-slider"
-             min="1" max="60" value="5"
-             oninput="syncInput(this.value)">
-      <button class="btn-auto" id="btn-auto" onclick="runAuto()" disabled>
-        ⚡ Run Auto Sequence
+    <div class="section-title">Run</div>
+    <div class="controls">
+      <button class="btn btn-run" id="btn-run" onclick="runOnce()" disabled>
+        <span class="btn-icon">▶</span>
+        <span>Run Sequence Once</span>
       </button>
-      <div class="auto-progress" id="auto-progress">
-        <div class="auto-progress-label">
-          <span>Auto-closing in…</span>
-          <span id="auto-countdown">5s</span>
-        </div>
-        <div class="auto-progress-bar-bg">
-          <div class="auto-progress-bar-fill" id="auto-bar"></div>
-        </div>
+      <div class="btn-row">
+        <button class="btn btn-auto-action" id="btn-auto" onclick="runAuto()" disabled>
+          <span class="btn-icon">🔁</span>
+          <span>Start Auto</span>
+        </button>
+        <button class="btn btn-stop" id="btn-stop" onclick="sendStop()" disabled>
+          <span class="btn-icon">⏹</span>
+          <span>Stop</span>
+        </button>
       </div>
     </div>
   </div>
@@ -520,12 +485,10 @@
     <div id="log"></div>
   </div>
 
-  <!-- Browser note -->
   <div class="note-bar">
     <strong>iPhone users:</strong> Web Bluetooth requires
     <a href="https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055" target="_blank">Bluefy</a>
     browser — Safari does not support Web Bluetooth.
-    Open this page in Bluefy to connect.
   </div>
 
 </main>
@@ -538,9 +501,10 @@ const CHARACTERISTIC_UUID = '12345678-1234-1234-1234-123456789013';
 let bleDevice         = null;
 let bleServer         = null;
 let bleCharacteristic = null;
-let autoCountdownTimer = null;
-let autoCountdownStart = 0;
-let autoDelayLocal     = 5000;
+let isAutoRunning      = false;
+let phaseTimerInterval = null;
+let phaseStartedAt     = 0;
+let phaseDurationMs    = 0;
 
 // ── BLE connect / disconnect ──────────────────────────────────────────────────
 async function toggleBLE() {
@@ -578,8 +542,7 @@ async function connectBLE() {
     enableButtons(true);
     log('Connected to ' + (bleDevice.name || 'device'), 'recv');
 
-    // Request current status
-    await sendCommand('STATUS');
+    await sendRaw('STATUS');
 
   } catch (err) {
     setDot('error', 'Error');
@@ -600,11 +563,49 @@ function onDisconnected() {
   enableButtons(false);
   bleDevice = null;
   bleCharacteristic = null;
+  isAutoRunning = false;
+  updateLoopBadge();
   log('Disconnected', 'info');
 }
 
-// ── Send command ──────────────────────────────────────────────────────────────
-async function sendCommand(cmd) {
+// ── Read settings from inputs ─────────────────────────────────────────────────
+function getSettings() {
+  const initial = Math.max(0, parseInt(document.getElementById('cfg-initial').value, 10) || 0);
+  const open    = Math.max(1, parseInt(document.getElementById('cfg-open').value, 10) || 1);
+  const close   = Math.max(1, parseInt(document.getElementById('cfg-close').value, 10) || 1);
+  const repeat  = Math.max(0, parseInt(document.getElementById('cfg-repeat').value, 10) || 0);
+  return {
+    initialMs: initial * 1000,
+    openMs:    open * 1000,
+    closeMs:   close * 1000,
+    repeatMs:  repeat * 1000
+  };
+}
+
+// ── Commands ───────────────────────────────────────────────────────────────────
+async function runOnce() {
+  const s = getSettings();
+  isAutoRunning = false;
+  updateLoopBadge();
+  await sendRaw(`RUN:${s.initialMs}:${s.openMs}:${s.closeMs}`);
+}
+
+async function runAuto() {
+  const s = getSettings();
+  isAutoRunning = true;
+  updateLoopBadge();
+  await sendRaw(`AUTO:${s.initialMs}:${s.openMs}:${s.closeMs}:${s.repeatMs}`);
+}
+
+async function sendStop() {
+  isAutoRunning = false;
+  updateLoopBadge();
+  clearInterval(phaseTimerInterval);
+  document.getElementById('phase-timer').textContent = '';
+  await sendRaw('STOP');
+}
+
+async function sendRaw(cmd) {
   if (!bleCharacteristic) {
     log('Not connected', 'err');
     return;
@@ -618,38 +619,8 @@ async function sendCommand(cmd) {
   }
 }
 
-// ── Auto sequence ─────────────────────────────────────────────────────────────
-async function runAuto() {
-  const secs = parseInt(document.getElementById('delay-input').value, 10) || 5;
-  autoDelayLocal = secs * 1000;
-  await sendCommand('AUTO:' + autoDelayLocal);
-  startCountdownUI(secs);
-}
-
-function startCountdownUI(secs) {
-  clearInterval(autoCountdownTimer);
-  const bar = document.getElementById('auto-bar');
-  const countdown = document.getElementById('auto-countdown');
-  const progress = document.getElementById('auto-progress');
-
-  progress.classList.add('visible');
-  autoCountdownStart = Date.now();
-  const totalMs = secs * 1000;
-
-  function tick() {
-    const elapsed = Date.now() - autoCountdownStart;
-    const remaining = Math.max(0, totalMs - elapsed);
-    const pct = (remaining / totalMs) * 100;
-    bar.style.width = pct + '%';
-    countdown.textContent = (remaining / 1000).toFixed(1) + 's';
-    if (remaining <= 0) {
-      clearInterval(autoCountdownTimer);
-      progress.classList.remove('visible');
-    }
-  }
-
-  autoCountdownTimer = setInterval(tick, 100);
-  tick();
+function updateLoopBadge() {
+  document.getElementById('loop-badge').classList.toggle('visible', isAutoRunning);
 }
 
 // ── Notifications from ESP32 ──────────────────────────────────────────────────
@@ -658,28 +629,63 @@ function onNotify(event) {
   const msg = decoder.decode(event.target.value);
   log(msg, 'recv');
   updateState(msg);
+
+  if (msg === 'STOPPED' || msg === 'CYCLE_DONE' || msg === 'IDLE') {
+    if (msg !== 'WAITING') {
+      // Sequence fully finished (non-auto) or stopped
+      if (msg === 'CYCLE_DONE' && isAutoRunning) {
+        // shouldn't happen for AUTO, but guard anyway
+      } else {
+        isAutoRunning = false;
+        updateLoopBadge();
+      }
+    }
+  }
 }
 
 const stateMap = {
-  'IDLE':       { label: 'IDLE',     icon: '💤', cls: '' },
-  'OPENING':    { label: 'OPENING',  icon: '🔓', cls: 'opening' },
-  'OPEN':       { label: 'OPEN',     icon: '✅', cls: 'open' },
-  'CLOSING':    { label: 'CLOSING',  icon: '🔒', cls: 'closing' },
-  'CLOSED':     { label: 'CLOSED',   icon: '🔒', cls: 'closed' },
-  'AUTO_OPEN':  { label: 'OPEN',     icon: '⏳', cls: 'open' },
-  'AUTO_WAIT':  { label: 'WAITING',  icon: '⏳', cls: 'open' },
-  'STOPPED':    { label: 'STOPPED',  icon: '⏹', cls: '' },
-  'TIMEOUT':    { label: 'TIMEOUT',  icon: '⚠️', cls: 'timeout' },
-  'UNKNOWN':    { label: 'UNKNOWN',  icon: '❓', cls: '' },
+  'IDLE':        { label: 'IDLE',         icon: '💤', cls: '',          phase: 0 },
+  'WAITING':     { label: 'WAITING',      icon: '⏳', cls: 'waiting',   phase: 'initial' },
+  'OPENING':     { label: 'OPENING',      icon: '🔓', cls: 'opening',   phase: 0 },
+  'OPEN_HOLD':   { label: 'OPEN',         icon: '✅', cls: 'openhold',  phase: 'open' },
+  'CLOSING':     { label: 'CLOSING',      icon: '🔒', cls: 'closing',   phase: 0 },
+  'CLOSE_HOLD':  { label: 'CLOSED',       icon: '🔒', cls: 'closehold', phase: 'close' },
+  'CYCLE_DONE':  { label: 'DONE',         icon: '🏁', cls: '',          phase: 0 },
+  'STOPPED':     { label: 'STOPPED',      icon: '⏹',  cls: 'stopped',   phase: 0 },
+  'TIMEOUT':     { label: 'TIMEOUT',      icon: '⚠️', cls: 'timeout',   phase: 0 },
 };
 
 function updateState(msg) {
-  const s = stateMap[msg] || stateMap['UNKNOWN'];
+  const s = stateMap[msg] || { label: msg, icon: '❓', cls: '', phase: 0 };
   document.getElementById('state-value').textContent = s.label;
   document.getElementById('state-value').className = 'state-value ' + s.cls;
   document.getElementById('state-icon').textContent = s.icon;
   document.getElementById('state-card').classList.toggle('active',
-    msg === 'OPENING' || msg === 'CLOSING' || msg === 'AUTO_WAIT');
+    ['WAITING','OPENING','OPEN_HOLD','CLOSING','CLOSE_HOLD'].includes(msg));
+
+  // Drive the little phase countdown text
+  clearInterval(phaseTimerInterval);
+  const timerEl = document.getElementById('phase-timer');
+  const settings = getSettings();
+
+  let durationMs = 0;
+  if (s.phase === 'initial') durationMs = settings.initialMs;
+  else if (s.phase === 'open') durationMs = settings.openMs;
+  else if (s.phase === 'close') durationMs = settings.closeMs;
+
+  if (durationMs > 0) {
+    phaseStartedAt = Date.now();
+    phaseDurationMs = durationMs;
+    const tick = () => {
+      const remaining = Math.max(0, phaseDurationMs - (Date.now() - phaseStartedAt));
+      timerEl.textContent = remaining > 0 ? (remaining / 1000).toFixed(1) + 's remaining' : '';
+      if (remaining <= 0) clearInterval(phaseTimerInterval);
+    };
+    phaseTimerInterval = setInterval(tick, 100);
+    tick();
+  } else {
+    timerEl.textContent = '';
+  }
 }
 
 // ── UI helpers ────────────────────────────────────────────────────────────────
@@ -690,17 +696,9 @@ function setDot(state, label) {
 }
 
 function enableButtons(on) {
-  ['btn-open','btn-close','btn-stop','btn-auto'].forEach(id => {
+  ['btn-run','btn-auto','btn-stop'].forEach(id => {
     document.getElementById(id).disabled = !on;
   });
-}
-
-function syncSlider(v) {
-  document.getElementById('delay-slider').value = v;
-}
-
-function syncInput(v) {
-  document.getElementById('delay-input').value = v;
 }
 
 // ── Log ───────────────────────────────────────────────────────────────────────
@@ -715,8 +713,6 @@ function log(msg, type = 'info') {
   entry.className = 'log-entry';
   entry.innerHTML = `<span class="log-time">${ts}</span><span class="log-msg ${type}">${arrow} ${msg}</span>`;
   el.prepend(entry);
-
-  // Keep last 40 entries
   while (el.children.length > 40) el.removeChild(el.lastChild);
 }
 
@@ -724,7 +720,6 @@ function clearLog() {
   document.getElementById('log').innerHTML = '';
 }
 
-// Initial state
 log('TrapGuard ready – tap Connect to pair', 'info');
 </script>
 
